@@ -2,6 +2,7 @@
 #include <curl/curl.h>
 #include <map>
 
+#include "utils.h"
 #include "webcurl.h"
 
 std::string get_html(std::string &url) {
@@ -59,6 +60,14 @@ std::vector<std::string> extract_links(std::string html) {
         }
     }
     return links;
+}
+
+std::vector<std::string> parse_links_absolute(std::vector<std::string> links, std::string relativeToUrl) {
+    std::vector<std::string> rlinks;
+    for(auto url : links) {
+        rlinks.push_back(absolute_url(url,relativeToUrl));
+    }
+    return rlinks;
 }
 
 std::string reformat_http_response(std::string text) {
