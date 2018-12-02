@@ -7,7 +7,7 @@ typedef struct {
     std::string path;
     std::string domain;
     int port;
-    std::string path;
+    std::string protocol;
     std::string query;
 } url_t;
 // http://www.zedwood.com/article/cpp-boost-url-regex
