@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <syslog.h>
+#include <regex>
+
 #include "utils.h"
 
 std::string trim(const std::string &str){
@@ -76,4 +78,55 @@ void init_daemon() {
     }
     /* Open the log file */
     openlog ("firstdaemon", LOG_PID, LOG_DAEMON);
+}
+
+bool is_url_absolute(std::string url){
+    const std::string urlRegexStr = "(http|ftp|https)://([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?";
+    const std::regex urlRegex(urlRegexStr.c_str());
+    return std::regex_match(url,urlRegex);
+}
+
+std::string base_url(std::string &url){
+    std::string baseURL = "";
+    std::size_t toIgnore = url.find("://");
+    std::size_t found = url.find_last_of("/");
+    if(found == std::string::npos || found < toIgnore + 3){
+        baseURL = url + "/";
+    } else {
+        baseURL = url.substr(0,found + 1);
+    }
+    return baseURL;
+}
+
+std::string get_first_piece(std::string& url){
+    std::size_t found = url.find("//");
+    if(found == std::string::npos){
+        found = url.find("/");
+    } else {
+        found = url.find("/",found+2);
+    }
+    if(found == std::string::npos){
+        return url;
+    }
+    std::string firstPiece = url.substr(0,found);
+    return firstPiece;
+}
+
+std::string absolute_url(std::string url, std::string &relativeToUrl){
+    if (is_url_absolute(url)) {
+        return url;
+    }
+    std::string baseURL = base_url(relativeToUrl);
+    std::string absoluteUrl = "";
+    std::size_t found = url.find("/");
+    if(found != std::string::npos){
+        if(found == 0){
+            absoluteUrl = get_first_piece(relativeToUrl) +  url;
+        } else {
+            absoluteUrl = baseURL + url;
+        }
+    } else {
+        absoluteUrl = baseURL + url;
+    }
+    return absoluteUrl;
 }
